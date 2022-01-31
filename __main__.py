@@ -10,11 +10,14 @@
 """
 
 import sys
+import organize_data
 
 if __name__ == "__main__":
     if sys.argv[1] == "-t":
-        pass
+        organize_data.training_resources()
     elif sys.argv[1] == "-l":
         pass
     elif sys.argv[1] == "-e":
         pass
+    else:
+        raise Exception("Please insert a desired option")
