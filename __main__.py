@@ -11,12 +11,16 @@
 
 import sys
 import organize_data
+import load_audio
 
 if __name__ == "__main__":
     try:
         if sys.argv[1] == "-t":
-            data = organize_data.training_resources(show_path=False)
-            print(data)
+            data = organize_data.training_resources(show_path=True)
+
+            audio = load_audio.load(data)
+
+            print(audio)
         elif sys.argv[1] == "-l":
             pass
         elif sys.argv[1] == "-e":
