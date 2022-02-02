@@ -10,11 +10,23 @@
 """
 
 import sys
+import organize_data
+import load_audio
 
 if __name__ == "__main__":
-    if sys.argv[1] == "-t":
-        pass
-    elif sys.argv[1] == "-l":
-        pass
-    elif sys.argv[1] == "-e":
-        pass
+    try:
+        if sys.argv[1] == "-t":
+            data = organize_data.training_resources(show_path=True)
+
+            audio = load_audio.load(data)
+
+            print(audio)
+        elif sys.argv[1] == "-l":
+            pass
+        elif sys.argv[1] == "-e":
+            pass
+    except IndexError as ex:
+        print(""" Please informe a desired flag option: 
+        -t [training_folder]: Train the neural neural network according with the data inside the folder
+        -l [load_trained_NN]: Load previous trained neural network
+        -e [audio_file] [text_file]: Compare the audio file with a file""")
