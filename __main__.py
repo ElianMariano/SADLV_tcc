@@ -13,11 +13,16 @@ import sys
 import organize_data
 
 if __name__ == "__main__":
-    if sys.argv[1] == "-t":
-        organize_data.training_resources()
-    elif sys.argv[1] == "-l":
-        pass
-    elif sys.argv[1] == "-e":
-        pass
-    else:
-        raise Exception("Please insert a desired option")
+    try:
+        if sys.argv[1] == "-t":
+            data = organize_data.training_resources(show_path=False)
+            print(data)
+        elif sys.argv[1] == "-l":
+            pass
+        elif sys.argv[1] == "-e":
+            pass
+    except IndexError as ex:
+        print(""" Please informe a desired flag option: 
+        -t [training_folder]: Train the neural neural network according with the data inside the folder
+        -l [load_trained_NN]: Load previous trained neural network
+        -e [audio_file] [text_file]: Compare the audio file with a file""")

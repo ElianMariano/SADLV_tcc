@@ -21,7 +21,7 @@
 
 import os
 
-def training_resources(folder='data'):
+def training_resources(folder='data', show_path=False):
     dir = os.listdir()
 
     if folder not in dir:
@@ -32,13 +32,15 @@ def training_resources(folder='data'):
     sub = []
 
     for f in os.listdir():
-        if os.path.isdir(os.path.join(os.getcwd(), f)):
+        path = os.path.join(os.getcwd(), f)
+        if os.path.isdir(path):
             os.chdir(f)
 
             folder = []
             for fi in os.listdir():
-                folder.append(fi)
-            
+                if (show_path): folder.append(os.path.join(os.getcwd(), fi))
+                else: folder.append(fi)
+
             os.chdir('..')
             sub.append(folder)
         else:
