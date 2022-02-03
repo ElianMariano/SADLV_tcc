@@ -12,7 +12,9 @@
     Each number will be stored inside a main .csv file.
 """
 
+from email.mime import audio
 from scipy.io import wavfile
+import numpy as np
 import re
 
 def load(files, read_labels=False):
@@ -22,9 +24,28 @@ def load(files, read_labels=False):
         for file in folder:
             if bool(re.search(r"\.wav", file)):
                 samplerate, data = wavfile.read(file)
-                audio_files.append(data)
+
+                if read_labels:
+                    read_phoneme(data, file)
+                else:
+                    audio_files.append(data)
 
     return audio_files
 
-def read_phoneme(file):
-    pass
+# Returns the date for a specif file, labeled as phoneme
+def read_phoneme(audio_data, audio_file):
+    phn_file = re.sub("(\.WAV.wav)", ".PHN", audio_file)
+
+    audio_labels = []
+    with open(phn_file) as f:
+        labeled_audio = []
+        for line in f:
+            line = line.split(" ")
+
+            audio_frame = []
+            for i in range(int(line[0]), int(line[1])):
+                audio_frame.append(audio_data[i])
+
+            labeled_audio.append([line[2][:-1], audio_frame])
+
+        return labeled_audio

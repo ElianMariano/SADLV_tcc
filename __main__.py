@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
             audio = load_audio.load(data)
 
-            print(audio)
+            #print(audio)
         elif sys.argv[1] == "-l":
             pass
         elif sys.argv[1] == "-e":
