@@ -9,13 +9,12 @@
                 <ending_frame> := Number of the last frame of the phoneme
                 <phoneme> := Specific phoneme written as text (N for none)
     Every specic sound phoneme will be translated as a number label in order to train the Neural Network.
-    Each number will be stored inside a main .csv file.
+    Each number will be stored inside a main .csv file inside the database main folder.
 """
 
-from email.mime import audio
 from scipy.io import wavfile
-import numpy as np
 import re
+import csv
 
 def load(files, read_labels=False):
     audio_files = []
@@ -32,7 +31,7 @@ def load(files, read_labels=False):
 
     return audio_files
 
-# Returns the date for a specif file, labeled as phoneme
+# Returns the audio data for a specif file, labeled as phoneme
 def read_phoneme(audio_data, audio_file):
     phn_file = re.sub("(\.WAV.wav)", ".PHN", audio_file)
 
@@ -48,4 +47,21 @@ def read_phoneme(audio_data, audio_file):
 
             labeled_audio.append([line[2][:-1], audio_frame])
 
+        f.close()
         return labeled_audio
+
+# Returns an dictionary of phonemes
+def load_phoneme_labels(file):
+    with open(file) as f:
+        csvreader = csv.reader(f)
+
+        # Skips the header
+        next(csvreader)
+
+        rows = {}
+        for row in csvreader:
+            rows[row[0]] = row[1]
+        
+        f.close()
+
+        return rows

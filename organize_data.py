@@ -46,4 +46,6 @@ def training_resources(folder='data', show_path=False):
         else:
             sub.append(f)
 
+    os.chdir('..')
+
     return sub

@@ -12,6 +12,7 @@
 import sys
 import organize_data
 import load_audio
+import os
 
 if __name__ == "__main__":
     try:
@@ -20,7 +21,7 @@ if __name__ == "__main__":
 
             audio = load_audio.load(data)
 
-            #print(audio)
+            #load_audio.load_phoneme_labels("phonemes.csv")
         elif sys.argv[1] == "-l":
             pass
         elif sys.argv[1] == "-e":
