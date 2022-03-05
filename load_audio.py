@@ -50,6 +50,7 @@ def read_phoneme(audio_data, audio_file):
         f.close()
         return labeled_audio
 
+# TODO Assign a number to each phoneme label inside a .csv file
 # Returns an dictionary of phonemes
 def load_phoneme_labels(file):
     with open(file) as f:
