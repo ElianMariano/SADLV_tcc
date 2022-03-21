@@ -12,46 +12,78 @@
     Each number will be stored inside a main .csv file inside the database main folder.
 """
 
+import code
+from email.mime import audio
 from scipy.io import wavfile
 import re
 import csv
+import os
 
-def load(files, read_labels=False):
+def load(files, phoneme_code):
     audio_files = []
 
-    for folder in files:
-        for file in folder:
-            if bool(re.search(r"\.wav", file)):
-                samplerate, data = wavfile.read(file)
+    phoneme_labels = load_phoneme_labels(phoneme_code)
+    
+    os.chdir(os.path.join('timit', 'data'))
 
-                if read_labels:
-                    read_phoneme(data, file)
-                else:
-                    audio_files.append(data)
+    # Current audio data
+    data = []
+    # Phoneme with code
+    coded_phonemes = []
+
+    for file in files:
+        if os.name == 'nt':
+            if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
+                samplerate, data = wavfile.read(file[6])
+                
+                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
+
+                # Returns a labeled phoneme with stops
+                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+        else:
+            if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
+                samplerate, data = wavfile.read(file[5])
+                
+                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
+
+                # Returns a labeled phoneme with stops
+                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+        
+        if len(data) != 0 and len(coded_phonemes) != 0:
+            audio_files.append(labeled_audio(coded_phonemes, data))
+            coded_phonemes = []
+            data = []
 
     return audio_files
 
+# Separerates the audio segment with a phoneme code for each specific chunk of the audio
+def labeled_audio(coded_phonemes, audio_data):
+    audio = []
+    for constraints in coded_phonemes:
+        chunk = []
+        for i in range(0, len(audio_data)):
+            if i >= int(constraints[0]) and i < int(constraints[1]):
+                chunk.append(audio_data[i])
+        
+        audio.append([constraints[2], chunk])
+    
+    return audio
+
 # Returns the audio data for a specif file, labeled as phoneme
-def read_phoneme(audio_data, audio_file):
-    phn_file = re.sub("(\.WAV.wav)", ".PHN", audio_file)
+def read_phoneme(phoneme_file, phoneme_labels):
+    phoneme_data = []
 
-    audio_labels = []
-    with open(phn_file) as f:
-        labeled_audio = []
+    with open(phoneme_file) as f:
         for line in f:
-            line = line.split(" ")
-
-            audio_frame = []
-            for i in range(int(line[0]), int(line[1])):
-                audio_frame.append(audio_data[i])
-
-            labeled_audio.append([line[2][:-1], audio_frame])
+            data = line.split(" ")
+            data[2] = phoneme_labels[data[2].replace('\n', '')]
+            phoneme_data.append(data)
 
         f.close()
-        return labeled_audio
 
-# TODO Assign a number to each phoneme label inside a .csv file
-# Returns an dictionary of phonemes
+    return phoneme_data
+
+# Returns an dictionary of phonemes linking the label with the code
 def load_phoneme_labels(file):
     with open(file) as f:
         csvreader = csv.reader(f)

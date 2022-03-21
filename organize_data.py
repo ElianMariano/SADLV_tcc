@@ -1,10 +1,11 @@
 """
-    TODO Read files by .csv
+    Read the directory for the audio files inside a .csv file.
 """
 
 import os
+import csv
 
-def training_resources(folder='data', show_path=False):
+def training_resources(folder='timit'):
     dir = os.listdir()
 
     if folder not in dir:
@@ -12,23 +13,21 @@ def training_resources(folder='data', show_path=False):
 
     os.chdir(folder)
 
-    sub = []
+    rows = []
+    with open("train_data.csv") as f:
+        csvreader = csv.reader(f)
 
-    for f in os.listdir():
-        path = os.path.join(os.getcwd(), f)
-        if os.path.isdir(path):
-            os.chdir(f)
+        # Skips header
+        next(csvreader)
 
-            folder = []
-            for fi in os.listdir():
-                if (show_path): folder.append(os.path.join(os.getcwd(), fi))
-                else: folder.append(fi)
+        for row in csvreader:
+            if row[0] == '':
+                break
 
-            os.chdir('..')
-            sub.append(folder)
-        else:
-            sub.append(f)
+            rows.append(row)
 
+        f.close()
+    
     os.chdir('..')
 
-    return sub
+    return rows

@@ -14,12 +14,15 @@ import organize_data
 import load_audio
 import os
 
+# TODO Refactor the logic of the parameters
+# TODO Create a batch parameter in order to choose a training range
 if __name__ == "__main__":
     try:
         if sys.argv[1] == "-t":
-            data = organize_data.training_resources(show_path=True)
+            data = organize_data.training_resources()
 
-            audio = load_audio.load(data)
+            audio = load_audio.load(data, "phoneme_code.csv")
+            #print(audio)
 
             #load_audio.load_phoneme_labels("phonemes.csv")
         elif sys.argv[1] == "-l":
