@@ -12,8 +12,6 @@
     Each number will be stored inside a main .csv file inside the database main folder.
 """
 
-import code
-from email.mime import audio
 from scipy.io import wavfile
 import re
 import csv

@@ -1,4 +1,3 @@
-from pickletools import optimize
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
