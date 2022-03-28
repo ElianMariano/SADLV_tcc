@@ -1,6 +1,10 @@
 """
-    This file abstracts the noisereduce library in order to work well with
-    the rest of the program.
+This file abstracts the noisereduce library in order to work well with
+the rest of the program.
+FLAGS:
+    -p: Plot the input and output audio
+    -w [file_name]: Writes the result into .wav file
+    -a [audio_path]: Selects a audio file
 """
 
 from scipy.io import wavfile
@@ -31,12 +35,10 @@ if __name__ == '__main__':
                 noise_reduced_audio = denoise(samplerate, audio_data)
             except Exception as ex:
                 print("Please inform the audio file")
-                print(ex)
 
         if '-w' in sys.argv:
             try:
                 output = str(sys.argv[sys.argv.index('-w')+1])
-                print(noise_reduced_audio)
                 wavfile.write("{filename}.wav".format(filename=output), samplerate, noise_reduced_audio)
             except Exception:
                 print("Please inform the name of the output file")
