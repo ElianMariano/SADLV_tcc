@@ -17,11 +17,12 @@ import re
 import csv
 import os
 
-def load(files, phoneme_code):
+# TODO Test for start=20 and end=23
+def load(files, phoneme_code, start=0, end=0):
     audio_files = []
 
     phoneme_labels = load_phoneme_labels(phoneme_code)
-    
+
     os.chdir(os.path.join('timit', 'data'))
 
     # Current audio data
@@ -29,28 +30,59 @@ def load(files, phoneme_code):
     # Phoneme with code
     coded_phonemes = []
 
-    for file in files:
-        if os.name == 'nt':
-            if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
-                samplerate, data = wavfile.read(file[6])
-                
-                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
+    if start == 0 and end == 0:
+        for file in files:
+            if os.name == 'nt':
+                if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
+                    samplerate, data = wavfile.read(file[6])
+                    
+                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
 
-                # Returns a labeled phoneme with stops
-                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-        else:
-            if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
-                samplerate, data = wavfile.read(file[5])
-                
-                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
+                    # Returns a labeled phoneme with stops
+                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+            else:
+                if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
+                    samplerate, data = wavfile.read(file[5])
+                    
+                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
 
-                # Returns a labeled phoneme with stops
-                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+                    # Returns a labeled phoneme with stops
+                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+            
+            if len(data) != 0 and len(coded_phonemes) != 0:
+                audio_files.append(labeled_audio(coded_phonemes, data))
+                coded_phonemes = []
+                data = []
+    else:
+        if start >= end:
+            raise RuntimeError('Please insert a starting index lower than the ending index')
+
+        # TODO Use a while loop instead
+        for file in files:
+            if int(file[0]) >= start and int(file[0]) < end:
+                if os.name == 'nt':
+                    if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
+                        samplerate, data = wavfile.read(file[6])
+                        
+                        phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
+
+                        # Returns a labeled phoneme with stops
+                        coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+                else:
+                    if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
+                        samplerate, data = wavfile.read(file[5])
+                        
+                        phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
+
+                        # Returns a labeled phoneme with stops
+                        coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+                
+                if len(data) != 0 and len(coded_phonemes) != 0:
+                    audio_files.append(labeled_audio(coded_phonemes, data))
+                    coded_phonemes = []
+                    data = []
+                
         
-        if len(data) != 0 and len(coded_phonemes) != 0:
-            audio_files.append(labeled_audio(coded_phonemes, data))
-            coded_phonemes = []
-            data = []
 
     return audio_files
 

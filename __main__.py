@@ -5,9 +5,9 @@
 
 HELP = """FLAGS:
     -t [training_folder]: Train the neural neural network according with the data inside the folder
+        -b [start_index] [end_index]: Choose a limited batch of training data
     -l [load_trained_nn]: Load previous trained neural network
     -e [audio_file] [text_file]: Compare the audio file with a file
-    -b [start_index] [end_index]: Choose a limited batch of training data
     -h|-help: Show this help information
 """
 
@@ -21,14 +21,19 @@ if __name__ == "__main__":
         if "-b" in sys.argv:
             try:
                 start_index, end_index = int(sys.argv[sys.argv.index("-b")+1]), int(sys.argv[sys.argv.index("-b")+2])
+
+                data = organize_data.training_resources()
+
+                audio = load_audio.load(data, "phoneme_code.csv", start=start_index, end=end_index)
+                print(audio)
             except Exception as ex:
                 print("Please inform the start and end index")
                 print(HELP)
+        else:
+            data = organize_data.training_resources()
 
-        data = organize_data.training_resources()
-
-        audio = load_audio.load(data, "phoneme_code.csv")
-        print(audio)
+            audio = load_audio.load(data, "phoneme_code.csv")
+            print(audio)
 
     if "-l" in sys.argv:
         try:
