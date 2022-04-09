@@ -1,8 +1,8 @@
 """
 Initial model for phoneme detection. It is expected that this model should be able to map the audio
-into a sequence of phonemes correctly. So because the sequence nature of the audio signal, it is
-supposed that a RNN (Recurrent Neural Network) should be use to peform this task.
-Along with that, the audio could transformed into a mel frequency spectogram, a technique which
+into a sequence of phonemes correctly. So because of the sequence nature of the audio signal, it is
+supposed that a RNN (Recurrent Neural Network) should be used to peform this task.
+Along with that, the audio should be transformed into a mel frequency spectogram, a technique which
 allows the audio wave to be represented by a set of image frames. These frames could be fed into
 a CNN (Convolutional Neural Network), and then resulting in a feature map, this feature map will
 then be fed into the RNN, resulting in the probability for each phoneme.

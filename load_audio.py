@@ -13,114 +13,77 @@
 """
 
 from scipy.io import wavfile
+import numpy as np
 import re
-import csv
+import pandas as pd
 import os
 
-def load(files, phoneme_code, quantity=0):
+def load(phoneme_code, quantity=0, folder='timit'):
+    dir = os.listdir()
+    if folder not in dir:
+        raise RuntimeError('Could not find folder {folder}'.format(folder = folder))
+
+    train_data = pd.read_csv(os.path.join(folder, 'train_data.csv')).to_numpy()
+
+    if quantity > 0:
+        train_data = train_data[:quantity]
+
     audio_files = []
 
-    phoneme_labels = load_phoneme_labels(phoneme_code)
+    phoneme_labels = pd.read_csv(phoneme_code).set_index('phoneme_label').T.to_dict('list')
 
-    os.chdir(os.path.join('timit', 'data'))
+    os.chdir(os.path.join(folder, 'data'))
 
     # Current audio data
     data = []
     # Phoneme with code
     coded_phonemes = []
 
-    if quantity == 0:
-        for file in files:
-            if os.name == 'nt':
-                if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
-                    samplerate, data = wavfile.read(file[6])
-                    
-                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
+    for file in train_data:
+        if os.name == 'nt':
+            if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
+                # TODO Convert the audio into a mel spectrogram
+                samplerate, data = wavfile.read(file[6])
+                
+                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
 
-                    # Returns a labeled phoneme with stops
-                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-            else:
-                if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
-                    samplerate, data = wavfile.read(file[5])
-                    
-                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
+                # Returns a labeled phoneme with stops
+                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+                print(coded_phonemes)
+        else:
+            if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
+                samplerate, data = wavfile.read(file[5])
+                
+                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
 
-                    # Returns a labeled phoneme with stops
-                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-            
-            if len(data) != 0 and len(coded_phonemes) != 0:
-                audio_files.append(labeled_audio(coded_phonemes, data))
-                coded_phonemes = []
-                data = []
-    else:
-        i = 0
-        while i < quantity:
-            file = files[i]
-            if os.name == 'nt':
-                if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
-                    samplerate, data = wavfile.read(file[6])
-
-                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
-
-                    # Returns a labeled phoneme with stops
-                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-            else:
-                if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
-                    samplerate, data = wavfile.read(file[5])
-                    
-                    phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
-
-                    # Returns a labeled phoneme with stops
-                    coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-            
-            if len(data) != 0 and len(coded_phonemes) != 0: # Test for start=14 and end=23
-                audio_files.append(labeled_audio(coded_phonemes, data))
-                coded_phonemes = []
-                data = []
-
-            i += 1
+                # Returns a labeled phoneme with stops
+                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+        
+        # if len(data) != 0 and len(coded_phonemes) != 0:
+        #     audio_files.append(labeled_audio(coded_phonemes, data))
+        #     coded_phonemes = []
+        #     data = []
 
     return audio_files
 
-# Separerates the audio segment with a phoneme code for each specific chunk of the audio
-def labeled_audio(coded_phonemes, audio_data):
-    audio = []
-    for constraints in coded_phonemes:
-        chunk = []
-        for i in range(0, len(audio_data)):
-            if i >= int(constraints[0]) and i < int(constraints[1]):
-                chunk.append(audio_data[i])
-        
-        audio.append([constraints[2], chunk])
-    
-    return audio
-
 # Returns the audio data for a specif file, labeled as phoneme
 def read_phoneme(phoneme_file, phoneme_labels):
-    phoneme_data = []
+    sa1 = pd.read_csv(phoneme_file, ' ').to_numpy()
 
-    with open(phoneme_file) as f:
-        for line in f:
-            data = line.split(" ")
-            data[2] = phoneme_labels[data[2].replace('\n', '')]
-            phoneme_data.append(data)
+    data = []
+    for i in range(0, len(sa1)):
+        data.append([sa1[i, 0], sa1[i, 1], phoneme_labels[sa1[i, 2]][0]])
 
-        f.close()
+    return np.array(data)
 
-    return phoneme_data
+# TODO Cut the mel spectrogram into frames
+def melToFrames(cutWidth=6):
+    pass
 
-# Returns an dictionary of phonemes linking the label with the code
-def load_phoneme_labels(file):
-    with open(file) as f:
-        csvreader = csv.reader(f)
+# TODO Converts a index number of an audio signal into the actual second of the audio clip
+def indexToSeconds(coded_phonemes):
+    pass
 
-        # Skips the header
-        next(csvreader)
-
-        rows = {}
-        for row in csvreader:
-            rows[row[0]] = row[1]
-        
-        f.close()
-
-        return rows
+# TODO Use this function to assign every mel spectrogram frame to a phoneme code
+def labeled_audio(coded_phonemes, audio_data):
+    pass
