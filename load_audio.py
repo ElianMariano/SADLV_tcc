@@ -12,13 +12,18 @@
     Each number will be stored inside a main .csv file inside the database main folder.
 """
 
-from scipy.io import wavfile
+from time import time
 import numpy as np
 import re
 import pandas as pd
+import librosa
 import os
+import warnings
 
 def load(phoneme_code, quantity=0, folder='timit'):
+    # Ignores the warnings thrown by pandas library
+    warnings.simplefilter(action='ignore', category=FutureWarning)
+
     dir = os.listdir()
     if folder not in dir:
         raise RuntimeError('Could not find folder {folder}'.format(folder = folder))
@@ -40,25 +45,29 @@ def load(phoneme_code, quantity=0, folder='timit'):
     coded_phonemes = []
 
     for file in train_data:
+        file_name = ''
         if os.name == 'nt':
-            if bool(re.search(r"(\.WAV)(\.wav)", file[6])):
-                # TODO Convert the audio into a mel spectrogram
-                samplerate, data = wavfile.read(file[6])
-                
-                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[6])
-
-                # Returns a labeled phoneme with stops
-                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-                print(coded_phonemes)
+            file_name = file[6]
         else:
-            if bool(re.search(r"(\.WAV)(\.wav)", file[5])):
-                samplerate, data = wavfile.read(file[5])
-                
-                phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file[5])
+            file_name = file[5]
 
-                # Returns a labeled phoneme with stops
-                coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-        
+        if bool(re.search(r"(\.WAV)(\.wav)", file_name)):
+            y, sr = librosa.load(file_name)
+
+            # Create a mel spectrogram from the audio
+            mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+            mel_spectrogram = cut_spectrogram(mel_spectrogram)
+
+            phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file_name)
+
+            TIME = len(y) / sr
+
+            # Returns a labeled phoneme start and ending index
+            coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
+            time_label = index_to_seconds(coded_phonemes, sr)
+
+            labeled_audio(mel_spectrogram, time_label, TIME, phoneme_labels)
+
         # if len(data) != 0 and len(coded_phonemes) != 0:
         #     audio_files.append(labeled_audio(coded_phonemes, data))
         #     coded_phonemes = []
@@ -76,14 +85,40 @@ def read_phoneme(phoneme_file, phoneme_labels):
 
     return np.array(data)
 
-# TODO Cut the mel spectrogram into frames
-def melToFrames(cutWidth=6):
-    pass
+# Cut the mel spectrogram into frames using np.reshape
+# cutWidth variable should be power of 2
+def cut_spectrogram(mel_spectrogram, cutWidth=8):
+    SHAPE = mel_spectrogram.shape
 
-# TODO Converts a index number of an audio signal into the actual second of the audio clip
-def indexToSeconds(coded_phonemes):
-    pass
+    return np.reshape(mel_spectrogram, (int(SHAPE[0]/cutWidth), SHAPE[1], cutWidth))
+
+# Converts the phoneme label index into the actual time stamp of the audio signal
+def index_to_seconds(coded_phonemes, sr):
+    data = coded_phonemes.astype('float64')
+
+    for i in range(0, len(coded_phonemes)):
+        data[i][0] = coded_phonemes[i][0] / sr
+        data[i][1] = coded_phonemes[i][1] / sr
+
+    return data
 
 # TODO Use this function to assign every mel spectrogram frame to a phoneme code
-def labeled_audio(coded_phonemes, audio_data):
-    pass
+def labeled_audio(spectrogram, time_label, time, phoneme_labels):
+    SHAPE = spectrogram.shape
+
+    # data = np.array([])
+    # print(f"TIME: {time}")
+    for i in range(0, SHAPE[0]):
+        START, END = (i*time/SHAPE[0], (i+1)*time/SHAPE[0])
+        # print(f"Starting Time: {START}, Ending Time: {END}")
+        # print(phoneme_by_time(START, END, time_label, phoneme_labels))
+
+    # print('\n')
+
+# TODO Return a vector of probabilities for a given time chunk
+# start, end: Where the chunk is located
+# time_label: A label containing the time stamps which every phoneme occurs
+# A dictionary which translates the phoneme label to the phoneme index code
+def phoneme_by_time(start, end, time_label, phoneme_labels):
+    # Start the result probilities with 0
+    probabilties = np.array([0] * len(phoneme_labels), dtype=np.float32)
