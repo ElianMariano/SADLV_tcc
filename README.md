@@ -1,6 +1,14 @@
 # TCC-Automatic-Speech-Recognition
 This project aims to create a _RNN_ which is capable to map audio input signals into a corresponding text phoneme.
 
+## Creating the Virtual Environment
+
+> python -m venv env
+
+## Installing the Dependencies
+
+> python -m pip install -r requirements.txt
+
 ## Automatic Speech Recognition
 This a _ASR (Automatic Speech Recognition)_ based system, so it means that its processing pipeline cosists in the following phases:
 
