@@ -11,20 +11,55 @@ basing on the CTC algorithm.
 """
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from tensorflow.keras.layers import LSTM, CuDNNLSTM, BatchNormalization, Dropout, Dense, Conv2D
+from tensorflow.keras.models import Sequential
+import pandas as pd
+
+# Load the phoneme labels format
+phoneme_labels = pd.read_csv('phoneme_code.csv').set_index('phoneme_label').T.to_dict('list')
+output_length = len(len(phoneme_labels))
+
+model = Sequential()
+
+# Write a Convolutional Layer
+
+model.add(CuDNNLSTM(output_length*8, return_sequences=True)) # Inform the input shape: input_shape=(train_x.shape[1:])
+model.add(Dropout(0.2))
+model.add(BatchNormalization())  #normalizes activation outputs, same reason you want to normalize your input data.
+
+model.add(CuDNNLSTM(output_length*8, return_sequences=True))
+model.add(Dropout(0.1))
+model.add(BatchNormalization())
+
+model.add(CuDNNLSTM(output_length*8))
+model.add(Dropout(0.2))
+model.add(BatchNormalization())
+
+model.add(Dense(output_length*16, activation='relu'))
+model.add(Dropout(0.2))
+
+model.add(Dense(output_length, activation='softmax'))
+
+opt = tf.keras.optimizers.Adam(lr=0.001, decay=1e-6)
+
+# Compile model
+model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer=opt,
+    metrics=['accuracy']
+)
 
 # model
-model = keras.models.Sequential()
-model.add(keras.Input(shape=(10, 10)))
-model.add(layers.SimpleRNN(1000, activation="relu"))
-model.add(layers.Dense(10))
+# model = keras.models.Sequential()
+# model.add(keras.Input(shape=(10, 10)))
+# model.add(layers.SimpleRNN(1000, activation="relu"))
+# model.add(layers.Dense(10))
 
-print(model.summary())
+# print(model.summary())
 
 # loss and optimizer
-loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-optim = keras.optimizers.Adam(learning_rate=0.001)
-metrics = ["accuracy"]
+# loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+# optim = keras.optimizers.Adam(learning_rate=0.001)
+# metrics = ["accuracy"]
 
-model.compile(loss=loss, optimizer=optim, metrics=metrics)
+# model.compile(loss=loss, optimizer=optim, metrics=metrics)

@@ -12,7 +12,6 @@
     Each number will be stored inside a main .csv file inside the database main folder.
 """
 
-from time import time
 import numpy as np
 import re
 import pandas as pd
@@ -65,8 +64,9 @@ def load(phoneme_code, quantity=0, folder='timit'):
             # Returns a labeled phoneme start and ending index
             coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
             time_label = index_to_seconds(coded_phonemes, sr)
+            print(phoneme_labels)
 
-            labeled_audio(mel_spectrogram, time_label, TIME, phoneme_labels)
+            # labeled_audio(mel_spectrogram, time_label, TIME, phoneme_labels)
 
         # if len(data) != 0 and len(coded_phonemes) != 0:
         #     audio_files.append(labeled_audio(coded_phonemes, data))
@@ -102,7 +102,7 @@ def index_to_seconds(coded_phonemes, sr):
 
     return data
 
-# TODO Use this function to assign every mel spectrogram frame to a phoneme code
+# TODO Use this function to assign every mel spectrogram frame to a probability set
 def labeled_audio(spectrogram, time_label, time, phoneme_labels):
     SHAPE = spectrogram.shape
 
@@ -110,15 +110,35 @@ def labeled_audio(spectrogram, time_label, time, phoneme_labels):
     # print(f"TIME: {time}")
     for i in range(0, SHAPE[0]):
         START, END = (i*time/SHAPE[0], (i+1)*time/SHAPE[0])
-        # print(f"Starting Time: {START}, Ending Time: {END}")
-        # print(phoneme_by_time(START, END, time_label, phoneme_labels))
+        print(f"Starting Time: {START}, Ending Time: {END}")
+        # print(phoneme_by_time(spectrogram, START, END, time_label, phoneme_labels))
 
     # print('\n')
 
 # TODO Return a vector of probabilities for a given time chunk
+# spectrogram: The audio spectrogram
 # start, end: Where the chunk is located
 # time_label: A label containing the time stamps which every phoneme occurs
-# A dictionary which translates the phoneme label to the phoneme index code
-def phoneme_by_time(start, end, time_label, phoneme_labels):
+# phoneme_labels: A dictionary which translates the phoneme label to the phoneme index code
+# null_character: Defines if a null character is needed or not
+def phoneme_by_time(spectrogram, start, end, time_label, phoneme_labels, null_character=False):
     # Start the result probilities with 0
     probabilties = np.array([0] * len(phoneme_labels), dtype=np.float32)
+
+    # Start and ending index for search
+    a, b = (0, len(time_label)-1)
+
+    # Ignore edges while searching
+    if end < time_label[0][0]:
+        pass
+    elif start >= time_label[len(time_label)-1][1]:
+        pass
+
+    while start >= time_label[a][1] or end <= time_label[b][0]:
+        if start >= time_label[a][1]:
+            a += 1
+        elif end <= time_label[b][0]:
+            b -= 1
+
+    # Stores the result chunk
+    result = spectrogram[a:b]
