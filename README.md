@@ -1,5 +1,6 @@
-# TCC-Automatic-Speech-Recognition
-This project aims to create a _RNN_ which is capable to map audio input signals into a corresponding text phoneme.
+# SADLV
+SADLV is a platform which can facilitate the proccess that a phoaudiologist takes in order to evaluate the progress of their patients.
+To achieve this result, the project implements an _Automatic Speech Recognition System_ in order to predict the accuracy of speech inside an audio data.
 
 ## Creating the Virtual Environment
 
@@ -18,18 +19,11 @@ This a _ASR (Automatic Speech Recognition)_ based system, so it means that its p
 - Classification
     - Language model
 
-### Pre-processing
+[Click here,](core/core.md) if you want to know more about how the _ASR_ system used in this project works.
 
-The pre-processing stage cleans the speech signal in order to make the speech as clear as possible. To do so, it uses a lot of diffirent techniques like audio normalising and noise reduction.
+## Backend
+The Backend used in this project is based on the __Flask__ library.
+The Database used is __PostgreSql__.
 
-### Feature extraction
-
-The feature extraction stage is responsable for taking the audio signal organize into its most important parts, which may be a word, sillable or phoneme. This proccess can be done in a lot of different ways, but for the current project it will be used __Artificial Neural Networks__ more specifically __Recurrent Neural Networks.__
-
-### Classification
-
-The classification stage takes the result gathered in the feature extraction stage and relates to the corresponding __Language model__ unit. The language model can be anything up to phrase, word, sillable or phoneme.
-
-## Recurrent neural network
-
-A recurrent neural netork is a special kind of _RN_ calculates its result based on iteration, which means it runs inside a loop feeding the last iteration into the current one and so on.
+## Frontend
+The Frontend of the project is developend with the __ReactJs__ Framework.
