@@ -1,4 +1,3 @@
--- Create all the database tables
 CREATE TABLE uf(
 	uf   VARCHAR(2)  NOT NULL,
 	nome VARCHAR(20) NOT NULL,
