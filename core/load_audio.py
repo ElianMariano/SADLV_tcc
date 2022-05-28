@@ -87,10 +87,10 @@ def read_phoneme(phoneme_file, phoneme_labels):
 
 # Cut the mel spectrogram into frames using np.reshape
 # cutWidth variable should be power of 2
-def cut_spectrogram(mel_spectrogram, cutWidth=8):
+def cut_spectrogram(mel_spectrogram, cut_width=8):
     SHAPE = mel_spectrogram.shape
 
-    return np.reshape(mel_spectrogram, (int(SHAPE[0]/cutWidth), SHAPE[1], cutWidth))
+    return np.reshape(mel_spectrogram, (int(SHAPE[0]/cut_width), SHAPE[1], cut_width))
 
 # Converts the phoneme label index into the actual time stamp of the audio signal
 def index_to_seconds(coded_phonemes, sr):

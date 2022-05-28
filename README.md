@@ -19,7 +19,7 @@ This a _ASR (Automatic Speech Recognition)_ based system, so it means that its p
 - Classification
     - Language model
 
-[Click here,](core/core.md) if you want to know more about how the _ASR_ system used in this project works.
+[Click here,](docs/core.md) if you want to know more about how the _ASR_ system used in this project works.
 
 ## Backend
 The Backend used in this project is based on the __Flask__ library.
