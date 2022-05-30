@@ -20,12 +20,11 @@ if __name__ == "__main__":
         if "-b" in sys.argv:
             try:
                 quantity = int(sys.argv[sys.argv.index("-b")+1])
-
-                audio = load_audio.load("phoneme_code.csv", quantity=quantity)
-                print(audio)
             except Exception as ex:
                 print("Please inform the quantity")
                 print(HELP)
+            
+            audio = load_audio.load("phoneme_code.csv", quantity=quantity)
         else:
             audio = load_audio.load("phoneme_code.csv")
             print(audio)

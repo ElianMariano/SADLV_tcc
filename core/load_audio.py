@@ -63,15 +63,10 @@ def load(phoneme_code, quantity=0, folder='timit'):
 
             # Returns a labeled phoneme start and ending index
             coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
-            time_label = index_to_seconds(coded_phonemes, sr)
-            print(phoneme_labels)
+            # time_label = index_to_seconds(coded_phonemes, sr)
 
-            # labeled_audio(mel_spectrogram, time_label, TIME, phoneme_labels)
-
-        # if len(data) != 0 and len(coded_phonemes) != 0:
-        #     audio_files.append(labeled_audio(coded_phonemes, data))
-        #     coded_phonemes = []
-        #     data = []
+            # Returns the probabities for a specific spectrogram
+            probabilities = mel_probabilities(spectrogram=mel_spectrogram, phn_data=coded_phonemes, phoneme_labels=phoneme_labels)
 
     return audio_files
 
@@ -90,7 +85,42 @@ def read_phoneme(phoneme_file, phoneme_labels):
 def cut_spectrogram(mel_spectrogram, cut_width=8):
     SHAPE = mel_spectrogram.shape
 
-    return np.reshape(mel_spectrogram, (int(SHAPE[0]/cut_width), SHAPE[1], cut_width))
+    return np.reshape(mel_spectrogram, (SHAPE[1], int(SHAPE[0]/cut_width), cut_width))
+
+# Returns the probabilities for a specific spectrogram
+def mel_probabilities(spectrogram, phn_data, phoneme_labels, null_character=False):
+    prob_shape = (spectrogram.shape[0], len(phoneme_labels))
+
+    if null_character:
+        prob_shape = (spectrogram.shape[0], len(phoneme_labels)+1)
+
+    # Probabilities by spectrogram
+    probabilities = np.zeros(prob_shape)
+
+    # Label width
+    WIDTH = phn_data[len(phn_data)-1][1] / spectrogram.shape[0]
+
+    # Run through all the probability set in order to assign the probabilities
+    current = 0
+    for i in range(0, len(probabilities)-1):
+        phoneme = find_phoneme_code_by_position(current, phn_data)
+        probabilities[i, phoneme] = 1
+
+        current += WIDTH
+
+    return probabilities
+
+# Returns the phoneme based on the time
+def find_phoneme_code_by_position(current, phn_data):
+    if current < phn_data[0, 0]:
+        return 0
+    
+    if current >= phn_data[len(phn_data)-1, 0]:
+        return 0
+    
+    for i in range(0, len(phn_data)):
+        if current >= phn_data[i, 0] and current < phn_data[i, 1]:
+            return phn_data[i, 2]
 
 # Converts the phoneme label index into the actual time stamp of the audio signal
 def index_to_seconds(coded_phonemes, sr):
@@ -101,44 +131,3 @@ def index_to_seconds(coded_phonemes, sr):
         data[i][1] = coded_phonemes[i][1] / sr
 
     return data
-
-# TODO Use this function to assign every mel spectrogram frame to a probability set
-def labeled_audio(spectrogram, time_label, time, phoneme_labels):
-    SHAPE = spectrogram.shape
-
-    # data = np.array([])
-    # print(f"TIME: {time}")
-    for i in range(0, SHAPE[0]):
-        START, END = (i*time/SHAPE[0], (i+1)*time/SHAPE[0])
-        print(f"Starting Time: {START}, Ending Time: {END}")
-        # print(phoneme_by_time(spectrogram, START, END, time_label, phoneme_labels))
-
-    # print('\n')
-
-# TODO Return a vector of probabilities for a given time chunk
-# spectrogram: The audio spectrogram
-# start, end: Where the chunk is located
-# time_label: A label containing the time stamps which every phoneme occurs
-# phoneme_labels: A dictionary which translates the phoneme label to the phoneme index code
-# null_character: Defines if a null character is needed or not
-def phoneme_by_time(spectrogram, start, end, time_label, phoneme_labels, null_character=False):
-    # Start the result probilities with 0
-    probabilties = np.array([0] * len(phoneme_labels), dtype=np.float32)
-
-    # Start and ending index for search
-    a, b = (0, len(time_label)-1)
-
-    # Ignore edges while searching
-    if end < time_label[0][0]:
-        pass
-    elif start >= time_label[len(time_label)-1][1]:
-        pass
-
-    while start >= time_label[a][1] or end <= time_label[b][0]:
-        if start >= time_label[a][1]:
-            a += 1
-        elif end <= time_label[b][0]:
-            b -= 1
-
-    # Stores the result chunk
-    result = spectrogram[a:b]
