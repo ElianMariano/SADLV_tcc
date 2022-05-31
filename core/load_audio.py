@@ -32,14 +32,13 @@ def load(phoneme_code, quantity=0, folder='timit'):
     if quantity > 0:
         train_data = train_data[:quantity]
 
-    audio_files = []
+    x_train = np.empty(shape=(0, 16, 8, 1))
+    y_train = np.empty(shape=(0))
 
     phoneme_labels = pd.read_csv(phoneme_code).set_index('phoneme_label').T.to_dict('list')
 
     os.chdir(os.path.join(folder, 'data'))
 
-    # Current audio data
-    data = []
     # Phoneme with code
     coded_phonemes = []
 
@@ -66,13 +65,17 @@ def load(phoneme_code, quantity=0, folder='timit'):
             # Returns the probabities for a specific spectrogram
             probabilities = probability_vector(spectrogram=mel_spectrogram, phn_data=coded_phonemes, phoneme_labels=phoneme_labels)
 
-            print(mel_spectrogram.shape)
-            print(probabilities.shape)
+            # print(mel_spectrogram.shape)
+            # print(probabilities.shape)
+            # print(x_train.shape)
 
-    return audio_files
+            x_train = np.concatenate((x_train, mel_spectrogram), axis=0)
+            y_train = np.concatenate((y_train, probabilities), axis=0)
+
+    return (x_train, y_train)
 
 # Returns the audio data for a specif file, labeled as phoneme
-def read_phoneme(phoneme_file, phoneme_labels):
+def read_phoneme(phoneme_file, phoneme_labels) -> np.ndarray:
     sa1 = pd.read_csv(phoneme_file, ' ').to_numpy()
 
     data = []
@@ -83,13 +86,13 @@ def read_phoneme(phoneme_file, phoneme_labels):
 
 # Cut the mel spectrogram into frames using np.reshape
 # cutWidth variable should be power of 2
-def cut_spectrogram(mel_spectrogram, cut_width=8):
+def cut_spectrogram(mel_spectrogram, cut_width=8) -> np.ndarray:
     SHAPE = mel_spectrogram.shape
 
-    return np.reshape(mel_spectrogram, (SHAPE[1], int(SHAPE[0]/cut_width), cut_width))
+    return np.reshape(mel_spectrogram, (SHAPE[1], int(SHAPE[0]/cut_width), cut_width, 1))
 
 # Returns a matrix of probabilities for a specific spectrogram
-def probability_matrix(spectrogram, phn_data, phoneme_labels, null_character=False):
+def probability_matrix(spectrogram, phn_data, phoneme_labels, null_character=False) -> np.ndarray:
     prob_shape = (spectrogram.shape[0], len(phoneme_labels))
 
     if null_character:
@@ -112,7 +115,7 @@ def probability_matrix(spectrogram, phn_data, phoneme_labels, null_character=Fal
     return probabilities
 
 # Return a vector of probabilites
-def probability_vector(spectrogram, phn_data, phoneme_labels, null_character=False):
+def probability_vector(spectrogram, phn_data, phoneme_labels, null_character=False) -> np.ndarray:
     prob_shape = (len(phoneme_labels))
 
     if null_character:
@@ -135,7 +138,7 @@ def probability_vector(spectrogram, phn_data, phoneme_labels, null_character=Fal
     return probabilities
 
 # Returns the phoneme based on the time
-def find_phoneme_code_by_position(current, phn_data):
+def find_phoneme_code_by_position(current, phn_data) -> int:
     if current < phn_data[0, 0]:
         return 0
     
@@ -146,8 +149,12 @@ def find_phoneme_code_by_position(current, phn_data):
         if current >= phn_data[i, 0] and current < phn_data[i, 1]:
             return phn_data[i, 2]
 
+# Loads a test data in order to evaluate the model
+def load_test_data():
+    pass
+
 # Converts the phoneme label index into the actual time stamp of the audio signal
-def index_to_seconds(coded_phonemes, sr):
+def index_to_seconds(coded_phonemes, sr) -> np.ndarray:
     data = coded_phonemes.astype('float64')
 
     for i in range(0, len(coded_phonemes)):

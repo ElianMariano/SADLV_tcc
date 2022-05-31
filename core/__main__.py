@@ -24,10 +24,15 @@ if __name__ == "__main__":
                 print("Please inform the quantity")
                 print(HELP)
             
-            audio = load_audio.load("phoneme_code.csv", quantity=quantity)
+            (x_train, y_train) = load_audio.load("phoneme_code.csv", quantity=quantity)
+
+            print(x_train.shape)
+            print(y_train.shape)
         else:
-            audio = load_audio.load("phoneme_code.csv")
-            print(audio)
+            (x_train, y_train) = load_audio.load("phoneme_code.csv")
+            
+            print(x_train.shape)
+            print(y_train.shape)
 
     if "-l" in sys.argv:
         try:
