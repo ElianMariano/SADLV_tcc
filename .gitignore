@@ -8,3 +8,4 @@ data/
 *.PHN
 *.WRD
 database.ini
+save_model

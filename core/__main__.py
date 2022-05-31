@@ -14,6 +14,7 @@ HELP = """FLAGS:
 import sys
 import load_audio
 from config import read_config
+from train_model import train
 
 # TODO Make the -t parameter receive the datased location and the phoneme labels
 if __name__ == "__main__":
@@ -24,16 +25,14 @@ if __name__ == "__main__":
             except Exception as ex:
                 print("Please inform the quantity")
                 print(HELP)
-                        
             (x_train, y_train) = load_audio.load("phoneme_code.csv", quantity=quantity)
 
             print(x_train.shape)
             print(y_train.shape)
         else:
-            (x_train, y_train) = load_audio.load("phoneme_code.csv")
-            
-            print(x_train.shape)
-            print(y_train.shape)
+            (EPOCHS, BATCH_SIZE, dataset) = read_config()
+
+            train(EPOCHS, BATCH_SIZE, dataset)
 
     if "-l" in sys.argv:
         try:

@@ -19,7 +19,7 @@ import librosa
 import os
 import warnings
 
-def load(phoneme_code, quantity=0, folder='timit'):
+def load(phoneme_code='phoneme_code.csv', quantity=0, folder='timit', train_file='train_data.csv'):
     # Ignores the warnings thrown by pandas library
     warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -27,7 +27,7 @@ def load(phoneme_code, quantity=0, folder='timit'):
     if folder not in dir:
         raise RuntimeError('Could not find folder {folder}'.format(folder = folder))
 
-    train_data = pd.read_csv(os.path.join(folder, 'train_data.csv')).to_numpy()
+    train_data = pd.read_csv(os.path.join(folder, train_file)).to_numpy()
 
     if quantity > 0:
         train_data = train_data[:quantity]
@@ -64,10 +64,6 @@ def load(phoneme_code, quantity=0, folder='timit'):
 
             # Returns the probabities for a specific spectrogram
             probabilities = probability_vector(spectrogram=mel_spectrogram, phn_data=coded_phonemes, phoneme_labels=phoneme_labels)
-
-            # print(mel_spectrogram.shape)
-            # print(probabilities.shape)
-            # print(x_train.shape)
 
             x_train = np.concatenate((x_train, mel_spectrogram), axis=0)
             y_train = np.concatenate((y_train, probabilities), axis=0)
@@ -116,20 +112,15 @@ def probability_matrix(spectrogram, phn_data, phoneme_labels, null_character=Fal
 
 # Return a vector of probabilites
 def probability_vector(spectrogram, phn_data, phoneme_labels, null_character=False) -> np.ndarray:
-    prob_shape = (len(phoneme_labels))
-
-    if null_character:
-        prob_shape = (len(phoneme_labels)+1)
-
     # Probabilities by spectrogram
-    probabilities = np.zeros(prob_shape)
+    probabilities = np.zeros(spectrogram.shape[0])
 
     # Label width
     WIDTH = phn_data[len(phn_data)-1][1] / spectrogram.shape[0]
 
     # Run through all the probability set in order to assign the probabilities
     current = 0
-    for i in range(0, len(probabilities)-1):
+    for i in range(0, len(phn_data)-1):
         phoneme = find_phoneme_code_by_position(current, phn_data)
         probabilities[i] = phoneme
 
@@ -149,7 +140,7 @@ def find_phoneme_code_by_position(current, phn_data) -> int:
         if current >= phn_data[i, 0] and current < phn_data[i, 1]:
             return phn_data[i, 2]
 
-# Loads a test data in order to evaluate the model
+# Loads a test data in order to validate the model
 def load_test_data():
     pass
 

@@ -1,5 +1,3 @@
-import re
-
 def read_config(file='CONFIG'):
     with open(file, 'r') as f:
         lines = f.readlines()
