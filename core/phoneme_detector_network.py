@@ -10,56 +10,48 @@ The resulting probabilities will be compared in order to find the right sequence
 basing on the CTC algorithm.
 """
 
+# X shape: (N, 16, 8, 1)
+# Y shape: (N)
+# Where N is the batch size
+
 import tensorflow as tf
-from tensorflow.keras.layers import LSTM, CuDNNLSTM, BatchNormalization, Dropout, Dense, Conv2D
+from tensorflow.keras.layers import LSTM, BatchNormalization, Dropout, Dense, MaxPooling1D, Flatten, Conv1D
 from tensorflow.keras.models import Sequential
 import pandas as pd
 
-# Load the phoneme labels format
-phoneme_labels = pd.read_csv('phoneme_code.csv').set_index('phoneme_label').T.to_dict('list')
-output_length = len(len(phoneme_labels))
+def phoneme_detector(length):
+    model = Sequential()
+    model.add(Conv1D(16, 3, activation='relu', input_shape=(16, 8)))
+    model.add(MaxPooling1D(3, 3))
+    model.add(Dropout(0.2))
+    model.add(LSTM(length*2, activation='relu', return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(BatchNormalization())
+    model.add(Flatten())
+    model.add(Dense(length*2, activation='softmax'))
+    model.add(Dropout(0.2))
+    # model.add(Dense(128, activation='softmax'))
+    # model.add(Dropout(0.2))
+    # model.add(Dense(64, activation='softmax'))
+    # model.add(Dropout(0.2))
+    # model.add(TimeDistributed(Dropout(0.2)))
+    model.add(Dense(length, activation='softmax'))
 
-model = Sequential()
+    return model
 
-# Write a Convolutional Layer
+if __name__ == '__main__':
+    # Load the phoneme labels format
+    phoneme_labels = pd.read_csv('phoneme_code.csv').set_index('phoneme_label').T.to_dict('list')
+    output_length = len(phoneme_labels)
 
-model.add(CuDNNLSTM(output_length*8, return_sequences=True)) # Inform the input shape: input_shape=(train_x.shape[1:])
-model.add(Dropout(0.2))
-model.add(BatchNormalization())  #normalizes activation outputs, same reason you want to normalize your input data.
+    model = phoneme_detector(output_length)
 
-model.add(CuDNNLSTM(output_length*8, return_sequences=True))
-model.add(Dropout(0.1))
-model.add(BatchNormalization())
+    opt = tf.keras.optimizers.Adam(learning_rate=0.001, decay=1e-6)
 
-model.add(CuDNNLSTM(output_length*8))
-model.add(Dropout(0.2))
-model.add(BatchNormalization())
+    model.compile(
+        loss='sparse_categorical_crossentropy',
+        optimizer=opt,
+        metrics=['accuracy']
+    )
 
-model.add(Dense(output_length*16, activation='relu'))
-model.add(Dropout(0.2))
-
-model.add(Dense(output_length, activation='softmax'))
-
-opt = tf.keras.optimizers.Adam(lr=0.001, decay=1e-6)
-
-# Compile model
-model.compile(
-    loss='sparse_categorical_crossentropy',
-    optimizer=opt,
-    metrics=['accuracy']
-)
-
-# model
-# model = keras.models.Sequential()
-# model.add(keras.Input(shape=(10, 10)))
-# model.add(layers.SimpleRNN(1000, activation="relu"))
-# model.add(layers.Dense(10))
-
-# print(model.summary())
-
-# loss and optimizer
-# loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-# optim = keras.optimizers.Adam(learning_rate=0.001)
-# metrics = ["accuracy"]
-
-# model.compile(loss=loss, optimizer=optim, metrics=metrics)
+    print(model.summary())

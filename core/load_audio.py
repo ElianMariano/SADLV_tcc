@@ -59,14 +59,15 @@ def load(phoneme_code, quantity=0, folder='timit'):
 
             phoneme_file = re.sub(r"(\.WAV)(\.wav)", ".PHN", file_name)
 
-            TIME = len(y) / sr
-
             # Returns a labeled phoneme start and ending index
             coded_phonemes = read_phoneme(phoneme_file, phoneme_labels)
             # time_label = index_to_seconds(coded_phonemes, sr)
 
             # Returns the probabities for a specific spectrogram
-            probabilities = mel_probabilities(spectrogram=mel_spectrogram, phn_data=coded_phonemes, phoneme_labels=phoneme_labels)
+            probabilities = probability_vector(spectrogram=mel_spectrogram, phn_data=coded_phonemes, phoneme_labels=phoneme_labels)
+
+            print(mel_spectrogram.shape)
+            print(probabilities.shape)
 
     return audio_files
 
@@ -87,8 +88,8 @@ def cut_spectrogram(mel_spectrogram, cut_width=8):
 
     return np.reshape(mel_spectrogram, (SHAPE[1], int(SHAPE[0]/cut_width), cut_width))
 
-# Returns the probabilities for a specific spectrogram
-def mel_probabilities(spectrogram, phn_data, phoneme_labels, null_character=False):
+# Returns a matrix of probabilities for a specific spectrogram
+def probability_matrix(spectrogram, phn_data, phoneme_labels, null_character=False):
     prob_shape = (spectrogram.shape[0], len(phoneme_labels))
 
     if null_character:
@@ -105,6 +106,29 @@ def mel_probabilities(spectrogram, phn_data, phoneme_labels, null_character=Fals
     for i in range(0, len(probabilities)-1):
         phoneme = find_phoneme_code_by_position(current, phn_data)
         probabilities[i, phoneme] = 1
+
+        current += WIDTH
+
+    return probabilities
+
+# Return a vector of probabilites
+def probability_vector(spectrogram, phn_data, phoneme_labels, null_character=False):
+    prob_shape = (len(phoneme_labels))
+
+    if null_character:
+        prob_shape = (len(phoneme_labels)+1)
+
+    # Probabilities by spectrogram
+    probabilities = np.zeros(prob_shape)
+
+    # Label width
+    WIDTH = phn_data[len(phn_data)-1][1] / spectrogram.shape[0]
+
+    # Run through all the probability set in order to assign the probabilities
+    current = 0
+    for i in range(0, len(probabilities)-1):
+        phoneme = find_phoneme_code_by_position(current, phn_data)
+        probabilities[i] = phoneme
 
         current += WIDTH
 
